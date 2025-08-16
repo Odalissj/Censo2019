@@ -306,37 +306,43 @@ document.addEventListener("DOMContentLoaded", () => {
   const sel = document.getElementById("selDivision");
 
 
-  const num = v => typeof v === "number" ? v : Number(String(v).replace(/\s/g,"").replace(/,/g,"."));
+  const num = v => typeof v === "number" ? v : Number(String(v ?? "").replace(/\s/g,"").replace(/,/g,"."));
   const fmt = n => Number.isFinite(n) ? new Intl.NumberFormat("es-GT").format(n) : "—";
   const pct = n => Number.isFinite(n) ? n.toFixed(2) + "%" : "—";
-  const fill = (id,val)=>{ const el=document.getElementById(id); if(el) el.textContent=val; };
-
+  const $  = id => document.getElementById(id);
+  const fill = (id, val) => { const el = $(id); if (el) el.textContent = val; };
 
   async function fetchCenso(codigo){
     const target = `https://censopoblacion.azurewebsites.net/API/indicadores/2/${encodeURIComponent(codigo)}`;
-
-    const url1 = `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`;
-
-    const url2 = `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(target)}`;
-
-    const url3 = `https://cors.isomorphic-git.org/${target}`;
-
-    for (const url of [url1, url2, url3]) {
+    const urls = [
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`,
+      `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(target)}`
+    ];
+    for (const u of urls) {
       try {
-        const r = await fetch(url, { cache: "no-store" });
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return await r.json();
+        const r = await fetch(u, { cache: "no-store" });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const text = await r.text();
+
+
+        let data = JSON.parse(text);
+
+        if (typeof data === "string") data = JSON.parse(data);
+        return data;
       } catch (e) {
-        console.warn("Intento fallido:", url, e);
+        console.warn("Fallo usando", u, e);
       }
     }
     throw new Error("No se pudo obtener datos (proxies caídos o bloqueados).");
   }
 
   function render(obj){
+
     const nombre = sel.selectedOptions[0].textContent.replace("(Resumen)","").trim();
     fill("tituloDivision", nombre);
     fill("nombreDivision", nombre);
+    fill("capitalDivision", obj.capital ?? "—");
+
 
     const total   = num(obj.pob_total);
     const hombres = num(obj.total_sexo_hombre);
@@ -364,12 +370,12 @@ document.addEventListener("DOMContentLoaded", () => {
     fill("urbanaPct", pct(num(obj.porc_sector_urbano)));
     fill("ruralPct",  pct(num(obj.porc_sector_rural)));
 
-    fill("edad014Abs", fmt(num(obj.pob_edad_014)));
+    fill("edad014Abs",  fmt(num(obj.pob_edad_014)));
     fill("edad1564Abs", fmt(num(obj.pob_edad_1564)));
-    fill("edad65Abs", fmt(num(obj.pob_edad_65)));
-    fill("edad014Pct", pct(num(obj.porc_edad_014)));
+    fill("edad65Abs",   fmt(num(obj.pob_edad_65)));
+    fill("edad014Pct",  pct(num(obj.porc_edad_014)));
     fill("edad1564Pct", pct(num(obj.porc_edad_1564)));
-    fill("edad65Pct", pct(num(obj.porc_edad_65)));
+    fill("edad65Pct",   pct(num(obj.porc_edad_65)));
 
     fill("puebloMayaAbs",        fmt(num(obj.pob_pueblo_maya)));
     fill("puebloMayaPct",        pct(num(obj.porc_pueblo_maya)));
@@ -385,23 +391,25 @@ document.addEventListener("DOMContentLoaded", () => {
     fill("puebloExtranjeroPct",  pct(num(obj.porc_pueblo_extranjero)));
   }
 
-  function mostrarError(msg){
+  function showMsg(text, type="danger"){
     const c = document.querySelector(".container");
     if (!c) return;
     const div = document.createElement("div");
-    div.className = "alert alert-danger mt-3";
-    div.textContent = msg;
+    div.className = `alert alert-${type} mt-3`;
+    div.textContent = text;
     c.prepend(div);
+    setTimeout(()=>div.remove(), 5000);
   }
 
   async function cargar(codigo){
+
     ["totPoblacion","totHombres","totMujeres","poblacionPanel"].forEach(id=>fill(id,"…"));
     try{
       const data = await fetchCenso(codigo);
       render(data);
     }catch(e){
       console.error(e);
-      mostrarError("No se pudo cargar la información.");
+      showMsg("No se pudo cargar la información. Intenta nuevamente.");
     }
   }
 
