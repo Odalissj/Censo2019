@@ -1,0 +1,25 @@
+
+    :root{
+      --azul-oscuro:#183b5b;
+      --azul:#2b6ea8;
+      --celeste:#8cd0ee;
+      --azul-fondo:#21496f;
+    }
+    body{background:#0f2841;color:#e6eef6}
+    .topbar{background:#0c2640}
+    .brand{color:#fff;font-weight:700}
+    .brand small{display:block;font-weight:400;opacity:.8}
+    .nav-lite{background:#1a3a5c}
+    .nav-lite .btn{background:#3582bf;border:0;color:#fff}
+    .panel{background:#183b5b;border-radius:12px; box-shadow:0 10px 24px rgba(0,0,0,.15)}
+    .panel h5, .panel h6{color:#fff}
+    .badge-ind{background:#2e557a}
+    .mapbox{background:#f6f9fc;border-radius:12px;min-height:320px;color:#334155}
+    .thead-mini th{background:#2b6ea8;color:#fff}
+    .table-darkish{--bs-table-bg:#1b3b5a;--bs-table-color:#e6eef6;--bs-table-striped-bg:#204566}
+    .muted{color:#c9d7e3}
+    .footer{color:#cfe3f3}
+    a, a:hover{color:#9dd8ff}
+    .right-col{position:relative}
+    .mascota{position:absolute; bottom:-8px; right:0; opacity:.9; width:85px; pointer-events:none}
+    @media (max-width: 991px){ .mascota{display:none} }
